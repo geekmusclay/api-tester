@@ -3,8 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const headersContainer = document.getElementById('headers-container');
     const sendBtn = document.getElementById('send');
     const saveBtn = document.getElementById('confirm-save');
+    const importBtn = document.getElementById('confirm-import');
     const collectionsContainer = document.getElementById('collections-list');
     const saveRequestModal = new bootstrap.Modal(document.getElementById('saveRequestModal'));
+    const importModal = new bootstrap.Modal(document.getElementById('importModal'));
     const darkModeToggle = document.getElementById('darkModeToggle');
     
     // Initialize dark mode from localStorage
@@ -169,8 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const entries = Object.entries(request.headers);
             if (entries.length > 0) {
                 const [firstKey, firstValue] = entries[0];
-                firstHeaderRow.querySelector('.header-key').value = firstKey;
-                firstHeaderRow.querySelector('.header-value').value = firstValue;
+                firstHeaderRow.querySelector('.header-key input').value = firstKey;
+                firstHeaderRow.querySelector('.header-value input').value = firstValue;
 
                 // Add remaining headers
                 entries.slice(1).forEach(([key, value]) => {
@@ -179,8 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             // Clear first header row
-            firstHeaderRow.querySelector('.header-key').value = '';
-            firstHeaderRow.querySelector('.header-value').value = '';
+            firstHeaderRow.querySelector('.header-key input').value = '';
+            firstHeaderRow.querySelector('.header-value input').value = '';
         }
     }
 
@@ -237,8 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Collect headers
         const headers = {};
         document.querySelectorAll('.header-row').forEach(row => {
-            const key = row.querySelector('.header-key').value.trim();
-            const value = row.querySelector('.header-value').value.trim();
+            const key = row.querySelector('.header-key input').value.trim();
+            const value = row.querySelector('.header-value input').value.trim();
             if (key) {
                 headers[key] = value;
             }
@@ -262,6 +264,67 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('request-name').value = '';
         });
     });
+    
+    // Import collections from API
+    importBtn.addEventListener('click', async () => {
+        const importUrl = document.getElementById('import-url').value.trim();
+        if (!importUrl) {
+            showImportStatus('error', 'Please enter a valid URL');
+            return;
+        }
+        
+        // Show loading spinner
+        const spinner = document.getElementById('import-spinner');
+        spinner.classList.remove('d-none');
+        importBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/collections/import', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: importUrl })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                showImportStatus('success', result.message);
+                loadCollections();
+                // Auto-close modal after 2 seconds on success
+                setTimeout(() => {
+                    importModal.hide();
+                    resetImportForm();
+                }, 2000);
+            } else {
+                showImportStatus('error', result.error || 'Failed to import collections');
+            }
+        } catch (error) {
+            showImportStatus('error', 'Network error: ' + error.message);
+        } finally {
+            // Hide spinner
+            spinner.classList.add('d-none');
+            importBtn.disabled = false;
+        }
+    });
+    
+    function showImportStatus(type, message) {
+        const statusEl = document.getElementById('import-status');
+        statusEl.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
+        statusEl.textContent = message;
+        statusEl.classList.remove('d-none');
+    }
+    
+    function resetImportForm() {
+        document.getElementById('import-url').value = '';
+        document.getElementById('import-status').classList.add('d-none');
+        document.getElementById('import-spinner').classList.add('d-none');
+        importBtn.disabled = false;
+    }
+    
+    // Reset import form when modal is closed
+    document.getElementById('importModal').addEventListener('hidden.bs.modal', resetImportForm);
 
     sendBtn.addEventListener('click', async () => {
         const method = document.getElementById('method').value;
@@ -271,8 +334,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Collect headers
         const headers = {};
         document.querySelectorAll('.header-row').forEach(row => {
-            const key = row.querySelector('.header-key').value.trim();
-            const value = row.querySelector('.header-value').value.trim();
+            const key = row.querySelector('.header-key input').value.trim();
+            const value = row.querySelector('.header-value input').value.trim();
             if (key) {
                 headers[key] = value;
             }

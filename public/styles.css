@@ -82,6 +82,11 @@ body {
     font-weight: 500;
 }
 
+.sidebar-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
 .collections-container {
     flex: 1;
     overflow-y: auto;

@@ -51,6 +51,59 @@ app.put('/api/collections/:id', (req, res) => {
     res.json(request);
 });
 
+// Import collections from an API endpoint
+app.post('/api/collections/import', async (req, res) => {
+    try {
+        const { url } = req.body;
+        
+        if (!url) {
+            return res.status(400).json({ error: 'URL is required' });
+        }
+        
+        // Fetch collections from the provided URL
+        const response = await axios.get(url);
+        const importedData = response.data;
+        
+        // Validate the imported data
+        if (!Array.isArray(importedData)) {
+            return res.status(400).json({ 
+                error: 'Invalid data format. Expected an array of collections.' 
+            });
+        }
+        
+        // Process and save each imported collection
+        const savedCollections = [];
+        for (const item of importedData) {
+            if (!item.name || !item.method || !item.url) {
+                continue; // Skip invalid items
+            }
+            
+            const newRequest = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                name: item.name,
+                method: item.method,
+                url: item.url,
+                headers: item.headers || {},
+                body: item.body || ''
+            };
+            
+            db.get('collections').push(newRequest).write();
+            savedCollections.push(newRequest);
+        }
+        
+        res.json({ 
+            success: true, 
+            message: `Imported ${savedCollections.length} collections successfully`,
+            collections: savedCollections 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            error: 'Failed to import collections', 
+            details: error.message 
+        });
+    }
+});
+
 // Delete a request from collection
 app.delete('/api/collections/:id', (req, res) => {
     const { id } = req.params;
