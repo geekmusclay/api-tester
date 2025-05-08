@@ -220,8 +220,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     headersContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-header')) {
-            e.target.closest('.header-row').remove();
+        // Vérifier si l'élément cliqué est le bouton ou l'icône à l'intérieur du bouton
+        if (e.target.classList.contains('remove-header') || 
+            e.target.closest('.remove-header')) {
+            // Trouver et supprimer la ligne de header parente
+            const headerRow = e.target.closest('.header-row');
+            if (headerRow) {
+                headerRow.remove();
+            }
         }
     });
 
