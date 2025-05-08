@@ -1,0 +1,372 @@
+/* Base styles */
+:root {
+    --primary-color: #FF6C37;
+    --primary-hover: #FF5722;
+    --sidebar-width: 250px;
+    --header-height: 56px;
+    --border-color: #e0e0e0;
+    --background-color: #f5f5f5;
+    --card-background: #ffffff;
+    --text-color: #333333;
+    --text-secondary: #666666;
+    --success-color: #4CAF50;
+    --warning-color: #FFC107;
+    --danger-color: #F44336;
+    --info-color: #2196F3;
+    --code-background: #f8f9fa;
+    --tab-active-color: #FF6C37;
+    --tab-hover-color: #f0f0f0;
+}
+
+/* Dark mode variables */
+[data-bs-theme="dark"] {
+    --border-color: #444444;
+    --background-color: #1a1a1a;
+    --card-background: #2d2d2d;
+    --text-color: #e0e0e0;
+    --text-secondary: #aaaaaa;
+    --code-background: #383838;
+    --tab-hover-color: #383838;
+}
+
+/* Global styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Layout */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.navbar {
+    height: var(--header-height);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-background);
+    padding: 0 1rem;
+}
+
+.navbar-brand {
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.main-content {
+    display: flex;
+    height: calc(100vh - var(--header-height));
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    border-right: 1px solid var(--border-color);
+    background-color: var(--card-background);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 500;
+}
+
+.collections-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+.collection-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.collection-item:hover {
+    background-color: var(--tab-hover-color);
+}
+
+.collection-item .method-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.collection-name {
+    margin: 0;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.collection-name.editing {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    outline: none;
+    min-width: 100px;
+    padding: 0.2rem 0.5rem;
+}
+
+.collection-item .actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.collection-item:hover .actions {
+    opacity: 1;
+}
+
+/* Request Panel */
+.request-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+/* URL Bar */
+.url-bar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.method-selector {
+    width: 110px;
+}
+
+.url-input {
+    flex: 1;
+}
+
+.send-button {
+    width: 80px;
+}
+
+.save-button {
+    width: 40px;
+}
+
+/* Request Tabs */
+.request-tabs {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-tabs {
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 1rem;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: var(--text-color);
+    padding: 0.75rem 1rem;
+    margin-right: 0.5rem;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    background-color: var(--tab-hover-color);
+}
+
+.nav-tabs .nav-link.active {
+    border-color: transparent;
+    border-bottom: 2px solid var(--tab-active-color);
+    color: var(--tab-active-color);
+    background-color: transparent;
+}
+
+.tab-content {
+    padding: 1rem;
+    flex: 1;
+    overflow: auto;
+}
+
+/* Headers */
+.header-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.header-key {
+    flex: 1;
+}
+
+.header-value {
+    flex: 1;
+}
+
+.header-actions {
+    width: 40px;
+    text-align: center;
+}
+
+/* Response Panel */
+.response-panel {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.response-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.response-meta {
+    display: flex;
+    gap: 1rem;
+}
+
+.status-badge, .time-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    background-color: var(--code-background);
+    font-size: 0.8rem;
+}
+
+.status-badge.success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.status-badge.error {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.response-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.response-pre {
+    background-color: var(--code-background);
+    padding: 1rem;
+    border-radius: 0;
+    margin: 0;
+    height: 100%;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+/* Form elements */
+.form-control, .form-select {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 108, 55, 0.25);
+}
+
+textarea {
+    resize: none;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.btn-outline-secondary {
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--tab-hover-color);
+    color: var(--text-color);
+}
+
+/* Method colors */
+.bg-GET, .bg-success {
+    background-color: var(--success-color) !important;
+}
+
+.bg-POST, .bg-primary {
+    background-color: var(--info-color) !important;
+}
+
+.bg-PUT, .bg-warning {
+    background-color: var(--warning-color) !important;
+    color: #212529;
+}
+
+.bg-DELETE, .bg-danger {
+    background-color: var(--danger-color) !important;
+}
+
+/* Modal */
+.modal-content {
+    background-color: var(--card-background);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.modal-header, .modal-footer {
+    border-color: var(--border-color);
+}
+
+/* Dark mode toggle */
+.form-switch .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
