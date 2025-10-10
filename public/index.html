@@ -6,6 +6,8 @@
     <title>API Tester</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-dark.min.css" rel="stylesheet" id="prism-dark-theme" disabled>
     <link href="styles.css" rel="stylesheet">
 </head>
 <body>
@@ -13,7 +15,12 @@
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">API Tester</a>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="sidebarToggle" class="btn btn-outline-secondary btn-sm" title="Toggle Collections">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <a class="navbar-brand" href="#">API Tester</a>
+                </div>
                 <div class="d-flex align-items-center">
                     <div class="form-check form-switch me-3">
                         <input class="form-check-input" type="checkbox" id="darkModeToggle">
@@ -28,11 +35,20 @@
         <!-- Main Content -->
         <div class="main-content">
             <!-- Sidebar -->
-            <div class="sidebar">
+            <div class="sidebar" id="sidebar">
                 <div class="sidebar-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5>Collection</h5>
                         <div class="sidebar-actions">
+                            <button id="create-folder" class="btn btn-sm btn-outline-secondary" title="Create Folder">
+                                <i class="bi bi-folder-plus"></i>
+                            </button>
+                            <button id="export-collections" class="btn btn-sm btn-outline-secondary" title="Export to JSON file">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button id="import-file" class="btn btn-sm btn-outline-secondary" title="Import from JSON file">
+                                <i class="bi bi-upload"></i>
+                            </button>
                             <button id="import-collection" class="btn btn-sm btn-outline-secondary" title="Import from API" data-bs-toggle="modal" data-bs-target="#importModal">
                                 <i class="bi bi-cloud-download"></i>
                             </button>
@@ -43,6 +59,7 @@
                     <!-- Collections will be loaded here -->
                 </div>
             </div>
+            <div id="sidebarResizer" class="resizer resizer-vertical" aria-hidden="true"></div>
 
             <!-- Request Panel -->
             <div class="request-panel">
@@ -105,6 +122,7 @@
                         </div>
                     </div>
                 </div>
+                <div id="panelResizer" class="resizer resizer-horizontal" aria-hidden="true"></div>
 
                 <!-- Response Panel -->
                 <div class="response-panel">
@@ -126,10 +144,10 @@
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="response-body" role="tabpanel">
-                                <pre id="response-data" class="response-pre"></pre>
+                                <pre class="response-pre"><code id="response-data" class="language-json"></code></pre>
                             </div>
                             <div class="tab-pane fade" id="response-headers" role="tabpanel">
-                                <pre id="response-headers-data" class="response-pre"></pre>
+                                <pre class="response-pre"><code id="response-headers-data" class="language-json"></code></pre>
                             </div>
                         </div>
                     </div>
@@ -150,6 +168,12 @@
                     <div class="mb-3">
                         <label for="request-name" class="form-label">Request Name</label>
                         <input type="text" class="form-control" id="request-name" placeholder="Enter a name for this request">
+                    </div>
+                    <div class="mb-3">
+                        <label for="request-folder" class="form-label">Folder</label>
+                        <select class="form-select" id="request-folder">
+                            <option value="">No folder (root)</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -187,7 +211,12 @@
         </div>
     </div>
 
+    <!-- Hidden file input for import -->
+    <input type="file" id="fileInput" accept=".json" style="display: none;">
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
