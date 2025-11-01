@@ -2,15 +2,67 @@
   "name": "api-tester",
   "version": "1.0.0",
   "description": "A Postman-like API testing application",
-  "main": "server.js",
+  "author": "GeekMusclay",
+  "license": "MIT",
+  "main": "electron-main.js",
+  "homepage": ".",
   "scripts": {
-    "start": "node server.js"
+    "start": "electron-forge start",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "build": "electron-builder",
+    "dist": "npm run build",
+    "pack": "electron-builder --dir",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "axios": "^1.6.2",
-    "cors": "^2.8.5",
     "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "electron-squirrel-startup": "^1.0.1",
+    "express": "^4.18.2",
     "lowdb": "^1.0.0"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.10.2",
+    "@electron-forge/maker-deb": "^7.10.2",
+    "@electron-forge/maker-rpm": "^7.10.2",
+    "@electron-forge/maker-squirrel": "^7.10.2",
+    "@electron-forge/maker-zip": "^7.10.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
+    "@electron-forge/plugin-fuses": "^7.10.2",
+    "@electron/fuses": "^1.8.0",
+    "concurrently": "^8.2.2",
+    "electron": "^27.0.0",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.apitest.app",
+    "productName": "API Tester",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/**/*",
+      "node_modules/express/**/*",
+      "node_modules/axios/**/*",
+      "node_modules/cors/**/*",
+      "node_modules/body-parser/**/*",
+      "node_modules/lowdb/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
   }
 }
