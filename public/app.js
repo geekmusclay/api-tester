@@ -18,10 +18,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarResizer = document.getElementById('sidebarResizer');
     const panelResizer = document.getElementById('panelResizer');
     const requestPanel = document.querySelector('.request-panel');
-    const urlBarEl = document.querySelector('.url-bar');
+    const workbenchEl = document.querySelector('.workbench');
+    const methodSelect = document.getElementById('method');
+    const collectionSearch = document.getElementById('collection-search');
+
+    // Color the method selector according to the selected method
+    function updateMethodColor() {
+        methodSelect.classList.remove('method-GET', 'method-POST', 'method-PUT', 'method-DELETE');
+        methodSelect.classList.add(`method-${methodSelect.value}`);
+    }
+    methodSelect.addEventListener('change', updateMethodColor);
+    updateMethodColor();
+
+    // Filter sidebar collections by search query
+    if (collectionSearch) {
+        collectionSearch.addEventListener('input', () => {
+            filterTree(collectionSearch.value.trim().toLowerCase());
+        });
+    }
+
+    function filterTree(query) {
+        const items = collectionsContainer.querySelectorAll('.tree-item');
+        if (!query) {
+            items.forEach(el => el.style.display = '');
+            return;
+        }
+        // Bottom-up: hide items without match, but keep folders whose descendants match
+        Array.from(items).reverse().forEach(el => {
+            const isFolder = el.dataset.type === 'folder';
+            const name = (el.querySelector('.folder-name, .collection-name')?.textContent || '').toLowerCase();
+            const selfMatch = name.includes(query);
+            const childMatch = isFolder && Array.from(el.querySelectorAll('.tree-item'))
+                .some(child => child.style.display !== 'none');
+            el.style.display = (selfMatch || childMatch) ? '' : 'none';
+        });
+    }
     
-    // Initialize dark mode from localStorage
-    if (localStorage.getItem('darkMode') === 'true') {
+    // Initialize theme from localStorage (dark by default)
+    if (localStorage.getItem('darkMode') === 'false') {
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+    } else {
         document.documentElement.setAttribute('data-bs-theme', 'dark');
         darkModeToggle.checked = true;
     }
@@ -333,10 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.documentElement.style.setProperty('--sidebar-width', savedSidebarWidth);
         }
 
-        // Request tabs height
-        const savedRequestHeight = localStorage.getItem('requestSectionHeight');
-        if (savedRequestHeight) {
-            document.documentElement.style.setProperty('--request-section-height', savedRequestHeight);
+        // Request pane width
+        const savedPaneWidth = localStorage.getItem('requestPaneWidth');
+        if (savedPaneWidth) {
+            document.documentElement.style.setProperty('--request-pane-width', savedPaneWidth);
         }
     }
 
@@ -379,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupPanelResizer() {
-        if (!panelResizer || !requestPanel || !urlBarEl) return;
+        if (!panelResizer || !workbenchEl) return;
         let isDragging = false;
 
         panelResizer.addEventListener('mousedown', (e) => {
@@ -390,32 +426,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            const panelRect = requestPanel.getBoundingClientRect();
-            const styles = getComputedStyle(requestPanel);
-            const paddingTop = parseFloat(styles.paddingTop) || 0;
-            const paddingBottom = parseFloat(styles.paddingBottom) || 0;
-            const gap = parseFloat(styles.rowGap || styles.gap) || 16;
-
-            // Space accounting inside request panel
-            const innerHeight = panelRect.height - paddingTop - paddingBottom;
-            const urlBarHeight = urlBarEl.offsetHeight;
-            const resizerThickness = 6;
-            const availableForSplit = innerHeight - urlBarHeight - gap - resizerThickness;
-
-            // Mouse Y relative to top inner content
-            const y = e.clientY - panelRect.top - paddingTop;
-            let requestTabsHeight = y - urlBarHeight - gap;
-
-            // Constraints
-            const minH = 120; // px
-            const maxH = Math.max(minH, availableForSplit * 0.8);
-            requestTabsHeight = Math.max(minH, Math.min(maxH, requestTabsHeight));
-
-            const percent = (requestTabsHeight / availableForSplit) * 100;
-            const clampedPercent = Math.max(15, Math.min(70, percent));
+            const rect = workbenchEl.getBoundingClientRect();
+            const resizerThickness = 5;
+            const x = e.clientX - rect.left;
+            const percent = (x / (rect.width - resizerThickness)) * 100;
+            const clampedPercent = Math.max(20, Math.min(75, percent));
             const value = `${clampedPercent}%`;
-            document.documentElement.style.setProperty('--request-section-height', value);
-            localStorage.setItem('requestSectionHeight', value);
+            document.documentElement.style.setProperty('--request-pane-width', value);
+            localStorage.setItem('requestPaneWidth', value);
         });
 
         window.addEventListener('mouseup', () => {
@@ -427,6 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadRequest(request) {
         document.getElementById('method').value = request.method;
+        updateMethodColor();
         document.getElementById('url').value = request.url;
         document.getElementById('request-body').value = request.body || '';
 

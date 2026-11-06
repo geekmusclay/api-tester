@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,10 +19,13 @@
                     <button id="sidebarToggle" class="btn btn-outline-secondary btn-sm" title="Toggle Collections">
                         <i class="bi bi-list"></i>
                     </button>
-                    <a class="navbar-brand" href="#">API Tester</a>
+                    <a class="navbar-brand" href="#"><i class="bi bi-lightning-charge-fill"></i> API Tester</a>
                 </div>
-                <div class="d-flex align-items-center">
-                    <div class="form-check form-switch me-3">
+                <div class="d-flex align-items-center gap-2">
+                    <select class="form-select form-select-sm env-select" title="Environment">
+                        <option>No Environment</option>
+                    </select>
+                    <div class="form-check form-switch m-0">
                         <input class="form-check-input" type="checkbox" id="darkModeToggle">
                         <label class="form-check-label" for="darkModeToggle">
                             <i class="bi bi-moon-stars"></i>
@@ -38,7 +41,7 @@
             <div class="sidebar" id="sidebar">
                 <div class="sidebar-header">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5>Collection</h5>
+                        <h5><i class="bi bi-collection"></i> Collections</h5>
                         <div class="sidebar-actions">
                             <button id="create-folder" class="btn btn-sm btn-outline-secondary" title="Create Folder">
                                 <i class="bi bi-folder-plus"></i>
@@ -54,6 +57,10 @@
                             </button>
                         </div>
                     </div>
+                    <div class="sidebar-search">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="collection-search" class="form-control form-control-sm" placeholder="Search requests ...">
+                    </div>
                 </div>
                 <div id="collections-list" class="collections-container">
                     <!-- Collections will be loaded here -->
@@ -66,7 +73,7 @@
                 <!-- URL Bar -->
                 <div class="url-bar">
                     <div class="method-selector">
-                        <select id="method" class="form-select">
+                        <select id="method" class="form-select method-GET">
                             <option value="GET">GET</option>
                             <option value="POST">POST</option>
                             <option value="PUT">PUT</option>
@@ -76,73 +83,75 @@
                     <div class="url-input">
                         <input type="text" id="url" class="form-control" placeholder="Enter request URL">
                     </div>
-                    <div class="send-button">
-                        <button id="send" class="btn btn-primary">Send</button>
-                    </div>
                     <div class="save-button">
-                        <button id="save-request" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#saveRequestModal">
+                        <button id="save-request" class="btn btn-outline-secondary" title="Save request" data-bs-toggle="modal" data-bs-target="#saveRequestModal">
                             <i class="bi bi-save"></i>
                         </button>
                     </div>
+                    <div class="send-button">
+                        <button id="send" class="btn btn-primary"><i class="bi bi-send"></i></button>
+                    </div>
                 </div>
 
-                <!-- Request Tabs -->
-                <div class="request-tabs">
-                    <ul class="nav nav-tabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#headers" type="button" role="tab">Headers</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#body" type="button" role="tab">Body</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="headers" role="tabpanel">
-                            <div id="headers-container">
-                                <div class="header-row">
-                                    <div class="header-key">
-                                        <input type="text" class="form-control" placeholder="Header name">
+                <!-- Workbench: request config | response -->
+                <div class="workbench">
+                    <div class="request-pane">
+                        <!-- Request Tabs -->
+                        <div class="request-tabs">
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#headers" type="button" role="tab">Headers</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#body" type="button" role="tab">Body</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" id="headers" role="tabpanel">
+                                    <div id="headers-container">
+                                        <div class="header-row">
+                                            <div class="header-key">
+                                                <input type="text" class="form-control" placeholder="Header name">
+                                            </div>
+                                            <div class="header-value">
+                                                <input type="text" class="form-control" placeholder="Value">
+                                            </div>
+                                            <div class="header-actions">
+                                                <button class="btn btn-sm btn-outline-danger remove-header">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="header-value">
-                                        <input type="text" class="form-control" placeholder="Value">
-                                    </div>
-                                    <div class="header-actions">
-                                        <button class="btn btn-sm btn-outline-danger remove-header">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
+                                    <button id="add-header" class="btn btn-sm btn-outline-secondary mt-2">
+                                        <i class="bi bi-plus"></i> Add Header
+                                    </button>
+                                </div>
+                                <div class="tab-pane fade" id="body" role="tabpanel">
+                                    <textarea id="request-body" class="form-control" rows="8" placeholder="Enter request body (JSON)"></textarea>
                                 </div>
                             </div>
-                            <button id="add-header" class="btn btn-sm btn-outline-secondary mt-2">
-                                <i class="bi bi-plus"></i> Add Header
-                            </button>
-                        </div>
-                        <div class="tab-pane fade" id="body" role="tabpanel">
-                            <textarea id="request-body" class="form-control" rows="8" placeholder="Enter request body (JSON)"></textarea>
                         </div>
                     </div>
-                </div>
-                <div id="panelResizer" class="resizer resizer-horizontal" aria-hidden="true"></div>
+                    <div id="panelResizer" class="resizer resizer-vertical" aria-hidden="true"></div>
 
-                <!-- Response Panel -->
-                <div class="response-panel">
-                    <div class="response-header">
-                        <h5>Response</h5>
-                        <div class="response-meta">
-                            <span id="status-code" class="status-badge">Status: ---</span>
-                            <span id="response-time" class="time-badge">Time: ---</span>
+                    <!-- Response Panel -->
+                    <div class="response-panel">
+                        <div class="response-header">
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#response-body" type="button" role="tab">Body</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#response-headers" type="button" role="tab">Headers</button>
+                                </li>
+                            </ul>
+                            <div class="response-meta">
+                                <span id="status-code" class="status-badge">---</span>
+                                <span id="response-time" class="time-badge">---</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="response-body">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#response-body" type="button" role="tab">Body</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#response-headers" type="button" role="tab">Headers</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content">
+                        <div class="tab-content response-content">
                             <div class="tab-pane fade show active" id="response-body" role="tabpanel">
                                 <pre class="response-pre"><code id="response-data" class="language-json"></code></pre>
                             </div>
