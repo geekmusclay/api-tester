@@ -48,10 +48,16 @@ app.post('/api/collections', (req, res) => {
 // Update a request in collection
 app.put('/api/collections/:id', (req, res) => {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, method, url, headers, body } = req.body;
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (method !== undefined) updates.method = method;
+    if (url !== undefined) updates.url = url;
+    if (headers !== undefined) updates.headers = headers;
+    if (body !== undefined) updates.body = body;
     const request = db.get('collections')
                     .find({ id })
-                    .assign({ name })
+                    .assign(updates)
                     .write();
     res.json(request);
 });

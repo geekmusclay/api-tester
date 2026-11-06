@@ -70,6 +70,14 @@
 
             <!-- Request Panel -->
             <div class="request-panel">
+                <!-- Request Tabs Bar -->
+                <div class="request-tab-bar">
+                    <div id="tabs-list" class="tabs-list"></div>
+                    <button id="new-tab" class="btn btn-sm btn-outline-secondary" title="New request">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+
                 <!-- URL Bar -->
                 <div class="url-bar">
                     <div class="method-selector">
@@ -84,7 +92,7 @@
                         <input type="text" id="url" class="form-control" placeholder="Enter request URL">
                     </div>
                     <div class="save-button">
-                        <button id="save-request" class="btn btn-outline-secondary" title="Save request" data-bs-toggle="modal" data-bs-target="#saveRequestModal">
+                        <button id="save-request" class="btn btn-outline-secondary" title="Save request">
                             <i class="bi bi-save"></i>
                         </button>
                     </div>

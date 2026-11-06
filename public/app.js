@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const workbenchEl = document.querySelector('.workbench');
     const methodSelect = document.getElementById('method');
     const collectionSearch = document.getElementById('collection-search');
+    const tabsList = document.getElementById('tabs-list');
+    const newTabBtn = document.getElementById('new-tab');
+    const urlInput = document.getElementById('url');
+    const bodyInput = document.getElementById('request-body');
 
     // Color the method selector according to the selected method
     function updateMethodColor() {
@@ -53,6 +57,156 @@ document.addEventListener('DOMContentLoaded', () => {
             el.style.display = (selfMatch || childMatch) ? '' : 'none';
         });
     }
+
+    // ------------------------------
+    // Request tabs
+    // ------------------------------
+    let tabs = [];
+    let activeTabId = null;
+    let tabCounter = 0;
+
+    // Read the current editor state (method, url, headers, body)
+    function collectRequestState() {
+        const headers = {};
+        document.querySelectorAll('.header-row').forEach(row => {
+            const key = row.querySelector('.header-key input').value.trim();
+            const value = row.querySelector('.header-value input').value;
+            if (key) headers[key] = value;
+        });
+        return {
+            method: methodSelect.value,
+            url: urlInput.value,
+            headers,
+            body: bodyInput.value
+        };
+    }
+
+    // Write a request state into the editor
+    function applyRequestState(state) {
+        methodSelect.value = state.method || 'GET';
+        updateMethodColor();
+        urlInput.value = state.url || '';
+        bodyInput.value = state.body || '';
+
+        headersContainer.innerHTML = '';
+        const entries = Object.entries(state.headers || {});
+        if (entries.length === 0) entries.push(['', '']);
+        entries.forEach(([key, value]) => addHeader(key, value));
+    }
+
+    function snapshotActiveTab() {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (tab) Object.assign(tab, collectRequestState());
+    }
+
+    function createTab(state = {}) {
+        const tab = {
+            id: 'tab-' + (++tabCounter),
+            requestId: state.requestId || null,
+            name: state.name || 'Untitled',
+            method: state.method || 'GET',
+            url: state.url || '',
+            headers: state.headers || {},
+            body: state.body || '',
+            dirty: false
+        };
+        tabs.push(tab);
+        activeTabId = null; // force activation to apply state
+        activateTab(tab.id);
+    }
+
+    function activateTab(id) {
+        if (activeTabId === id) {
+            renderTabBar();
+            return;
+        }
+        snapshotActiveTab();
+        activeTabId = id;
+        const tab = tabs.find(t => t.id === id);
+        applyRequestState(tab);
+        renderTabBar();
+    }
+
+    function closeTab(id) {
+        const idx = tabs.findIndex(t => t.id === id);
+        if (idx === -1) return;
+        const wasActive = tabs[idx].id === activeTabId;
+        tabs.splice(idx, 1);
+        if (tabs.length === 0) {
+            createTab();
+            return;
+        }
+        if (wasActive) {
+            activeTabId = null;
+            activateTab(tabs[Math.min(idx, tabs.length - 1)].id);
+        } else {
+            renderTabBar();
+        }
+    }
+
+    function openRequestInTab(request) {
+        const existing = tabs.find(t => t.requestId === request.id);
+        if (existing) {
+            activateTab(existing.id);
+            return;
+        }
+        createTab({ ...request, requestId: request.id });
+    }
+
+    function renderTabBar() {
+        tabsList.innerHTML = '';
+        tabs.forEach(tab => {
+            const el = document.createElement('div');
+            el.className = 'request-tab' + (tab.id === activeTabId ? ' active' : '');
+            el.title = tab.name;
+
+            const methodSpan = document.createElement('span');
+            methodSpan.className = `tab-method m-${tab.method}`;
+            methodSpan.textContent = tab.method;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'tab-name';
+            nameSpan.textContent = tab.name;
+
+            el.appendChild(methodSpan);
+            el.appendChild(nameSpan);
+
+            if (tab.dirty) {
+                const dot = document.createElement('span');
+                dot.className = 'tab-dirty';
+                el.appendChild(dot);
+            }
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'tab-close';
+            closeBtn.title = 'Close tab';
+            closeBtn.innerHTML = '<i class="bi bi-x"></i>';
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeTab(tab.id);
+            });
+            el.appendChild(closeBtn);
+
+            el.addEventListener('click', () => activateTab(tab.id));
+            tabsList.appendChild(el);
+        });
+    }
+
+    newTabBtn.addEventListener('click', () => createTab());
+
+    // Keep the active tab state in sync with the editor + mark dirty
+    requestPanel.addEventListener('input', () => {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        Object.assign(tab, collectRequestState());
+        if (!tab.dirty) {
+            tab.dirty = true;
+            renderTabBar();
+        }
+    });
+
+    // First tab on startup
+    createTab();
     
     // Initialize theme from localStorage (dark by default)
     if (localStorage.getItem('darkMode') === 'false') {
@@ -93,7 +247,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 collections = data.collections || [];
                 renderTree();
                 updateFolderSelect();
+                syncTabsWithCollections();
             });
+    }
+
+    // Keep open tabs in sync with saved collections (rename / delete)
+    function syncTabsWithCollections() {
+        let changed = false;
+        tabs.forEach(tab => {
+            if (!tab.requestId) return;
+            const req = collections.find(r => r.id === tab.requestId);
+            if (req) {
+                if (tab.name !== req.name || tab.method !== req.method) {
+                    tab.name = req.name;
+                    tab.method = req.method;
+                    if (tab.id === activeTabId) {
+                        methodSelect.value = tab.method;
+                        updateMethodColor();
+                    }
+                    changed = true;
+                }
+            } else {
+                // The saved request no longer exists: detach the tab
+                tab.requestId = null;
+                changed = true;
+            }
+        });
+        if (changed) renderTabBar();
     }
 
     function renderTree() {
@@ -281,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         item.appendChild(contentDiv);
         item.appendChild(actionsDiv);
 
-        item.onclick = () => loadRequest(request);
+        item.onclick = () => openRequestInTab(request);
         
         wrapper.appendChild(item);
         
@@ -443,39 +623,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function loadRequest(request) {
-        document.getElementById('method').value = request.method;
-        updateMethodColor();
-        document.getElementById('url').value = request.url;
-        document.getElementById('request-body').value = request.body || '';
-
-        // Clear existing headers
-        const headerRows = document.querySelectorAll('.header-row');
-        headerRows.forEach((row, index) => {
-            if (index > 0) row.remove();
-        });
-
-        // Add saved headers
-        const firstHeaderRow = document.querySelector('.header-row');
-        if (request.headers && Object.keys(request.headers).length > 0) {
-            const entries = Object.entries(request.headers);
-            if (entries.length > 0) {
-                const [firstKey, firstValue] = entries[0];
-                firstHeaderRow.querySelector('.header-key input').value = firstKey;
-                firstHeaderRow.querySelector('.header-value input').value = firstValue;
-
-                // Add remaining headers
-                entries.slice(1).forEach(([key, value]) => {
-                    addHeader(key, value);
-                });
-            }
-        } else {
-            // Clear first header row
-            firstHeaderRow.querySelector('.header-key input').value = '';
-            firstHeaderRow.querySelector('.header-value input').value = '';
-        }
-    }
-
     function deleteRequest(id) {
         if (confirm('Are you sure you want to delete this request?')) {
             fetch(`/api/collections/${id}`, {
@@ -521,6 +668,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Save button: update the bound request, or open the modal for a new one
+    document.getElementById('save-request').addEventListener('click', () => {
+        snapshotActiveTab();
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (tab && tab.requestId) {
+            fetch(`/api/collections/${tab.requestId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: tab.name,
+                    method: tab.method,
+                    url: tab.url,
+                    headers: tab.headers,
+                    body: tab.body
+                })
+            }).then(() => {
+                tab.dirty = false;
+                renderTabBar();
+                loadCollections();
+            });
+        } else {
+            saveRequestModal.show();
+        }
+    });
+
     saveBtn.addEventListener('click', () => {
         const name = document.getElementById('request-name').value;
         if (!name) {
@@ -528,20 +702,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const method = document.getElementById('method').value;
-        const url = document.getElementById('url').value;
-        const requestBody = document.getElementById('request-body').value;
+        snapshotActiveTab();
+        const { method, url, headers, body: requestBody } = collectRequestState();
         const folderId = document.getElementById('request-folder').value || null;
-        
-        // Collect headers
-        const headers = {};
-        document.querySelectorAll('.header-row').forEach(row => {
-            const key = row.querySelector('.header-key input').value.trim();
-            const value = row.querySelector('.header-value input').value.trim();
-            if (key) {
-                headers[key] = value;
-            }
-        });
 
         fetch('/api/collections', {
             method: 'POST',
@@ -556,7 +719,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: requestBody,
                 folderId
             })
-        }).then(() => {
+        }).then(response => response.json())
+        .then(created => {
+            // Bind the active tab to the newly created request
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab) {
+                tab.requestId = created.id;
+                tab.name = name;
+                tab.dirty = false;
+            }
             loadCollections();
             saveRequestModal.hide();
             document.getElementById('request-name').value = '';
